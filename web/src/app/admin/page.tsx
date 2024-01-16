@@ -2,6 +2,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 import BackButton from "./back-button";
 import Sidebar from "./sidebar";
+import AdminView from "./admin-view";
 
 export default async function AdminPage() {
   const { isAuthenticated, getPermission, getUser } = getKindeServerSession();
@@ -27,7 +28,7 @@ export default async function AdminPage() {
 
   return (
     <main className="flex h-screen">
-      <div className="grow bg-blue-400"></div>
+      <AdminView />
       <Sidebar users={users} />
     </main>
   );
