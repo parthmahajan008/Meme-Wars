@@ -5,11 +5,11 @@ import { useSocket } from "@/contexts/socket-provider";
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { ReloadIcon } from "@radix-ui/react-icons";
+import TopicContainer from "@/components/topic-container";
 
 export default function AdminView() {
-  const [topic, setTopic] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { isConnected, socket, users, setUsers } = useSocket();
+  const { isConnected, socket, users, setUsers, topic, setTopic } = useSocket();
 
   const joinAdminRoom = useCallback(async () => {
     if (!socket || !isConnected) return;
@@ -30,20 +30,18 @@ export default function AdminView() {
     [socket, isConnected],
   );
 
-  async function generateNewTopic() {
+  const generateNewTopic = useCallback(async () => {
+    if (!socket || !isConnected) return;
     setIsLoading(true);
     const res = await axios.get("/api/generate/topic");
-    setTopic(res.data.topic);
+    const topic = res.data.topic;
+    socket.emit("newTopic", topic);
     setIsLoading(false);
-  }
+  }, [socket, isConnected]);
 
   return (
     <div className="grow">
-      <div className="text-center">
-        <p className="mb-2 font-medium text-slate-500">Topic</p>
-        {topic && (
-          <p className="font-slate-700 mb-4 text-3xl font-semibold">{topic}</p>
-        )}
+      <TopicContainer>
         <Button
           disabled={isLoading}
           size="lg"
@@ -54,7 +52,7 @@ export default function AdminView() {
           )}
           Generate New Topic
         </Button>
-      </div>
+      </TopicContainer>
       <Button size="lg" onClick={() => startRound(1)}>
         Start Round
       </Button>

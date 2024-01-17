@@ -11,6 +11,8 @@ type SocketContextType = {
   isConnected: boolean;
   users: User[];
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  topic: string;
+  setTopic: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const SocketContext = createContext<SocketContextType>({
@@ -18,6 +20,8 @@ const SocketContext = createContext<SocketContextType>({
   isConnected: false,
   users: [],
   setUsers: () => {},
+  topic: "",
+  setTopic: () => {},
 });
 
 export const useSocket = () => {
@@ -28,6 +32,7 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
   const [users, setUsers] = useState<User[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [topic, setTopic] = useState("");
   const { user } = useKindeBrowserClient();
 
   useEffect(() => {
@@ -48,6 +53,8 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
       socketInstance.emit("removeUser", user);
     });
 
+    socketInstance.on("setTopic", setTopic);
+
     setSocket(socketInstance);
 
     return () => {
@@ -56,7 +63,9 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
   }, [user]);
 
   return (
-    <SocketContext.Provider value={{ socket, isConnected, users, setUsers }}>
+    <SocketContext.Provider
+      value={{ socket, isConnected, users, setUsers, topic, setTopic }}
+    >
       {children}
     </SocketContext.Provider>
   );
