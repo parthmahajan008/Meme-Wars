@@ -55,6 +55,10 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
         const users = await getUsers(io);
         io.in("admin").emit("getUsers", users);
       });
+
+      socket.on("newRound", (roundNo) => {
+        socket.join(`round:${roundNo}`);
+      });
     });
 
     res.socket.server.io = io;
