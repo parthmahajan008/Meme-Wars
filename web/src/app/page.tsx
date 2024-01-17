@@ -5,7 +5,7 @@ import {
   RegisterLink,
   LoginLink,
 } from "@kinde-oss/kinde-auth-nextjs/components";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/dist/types/server";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 
 export default async function Home() {
   const { isAuthenticated } = getKindeServerSession();

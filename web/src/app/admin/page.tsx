@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import BackButton from "./back-button";
 import Sidebar from "./sidebar";
 import AdminView from "./admin-view";
+import { useSocket } from "@/contexts/socket-provider";
 
 export default async function AdminPage() {
   const { isAuthenticated, getPermission, getUser } = getKindeServerSession();
@@ -22,14 +23,10 @@ export default async function AdminPage() {
       </main>
     );
 
-  const users = Array(60)
-    .fill(0)
-    .map((item) => user);
-
   return (
     <main className="flex h-screen">
       <AdminView />
-      <Sidebar users={users} />
+      <Sidebar />
     </main>
   );
 }
