@@ -38,13 +38,13 @@ export default function Sidebar() {
       <ul className="flex flex-col gap-2 p-2">
         <li>
           <span className="mb-4 ml-2 text-xs font-medium text-slate-500">
-            Admins
+            Admins ({admins?.length ?? 0})
           </span>
         </li>
         {admins?.map((admin) => <UserListItem key={admin.id} user={admin} />)}
         <li>
           <span className="mb-4 ml-2 text-xs font-medium text-slate-500">
-            Players
+            Players ({players?.length ?? 0})
           </span>
         </li>
         {players?.map((player) => (

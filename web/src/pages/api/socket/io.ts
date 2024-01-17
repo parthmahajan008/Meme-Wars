@@ -35,7 +35,7 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
     io.on("connection", async (socket) => {
       socket.on("newUser", async (user) => {
         console.log("[NEW USER]");
-        await socket.join(`user:${user.id}`);
+        await socket.join([`user:${user.id}`, "round:1"]);
         socket.data.user = { ...user, role: "PLAYER" };
         const users = await getUsers(io);
         io.in("admin").emit("getUsers", users);
@@ -60,8 +60,12 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
         io.emit("setTopic", topic);
       });
 
-      socket.on("newRound", (roundNo) => {
-        socket.join(`round:${roundNo}`);
+      socket.on("startRound", (roundNo) => {
+        io.in(`round:${roundNo}`).in("admin").emit("setStartRound");
+      });
+
+      socket.on("checkRoom", (room, callback) => {
+        callback({ status: "ok", data: socket.rooms.has(room) });
       });
     });
 

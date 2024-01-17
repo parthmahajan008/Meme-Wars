@@ -11,8 +11,12 @@ type SocketContextType = {
   isConnected: boolean;
   users: User[];
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  roundNo: number;
+  setRoundNo: React.Dispatch<React.SetStateAction<number>>;
   topic: string;
   setTopic: React.Dispatch<React.SetStateAction<string>>;
+  roundStarted: boolean;
+  setRoundStarted: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const SocketContext = createContext<SocketContextType>({
@@ -20,8 +24,12 @@ const SocketContext = createContext<SocketContextType>({
   isConnected: false,
   users: [],
   setUsers: () => {},
+  roundNo: 1,
+  setRoundNo: () => {},
   topic: "",
   setTopic: () => {},
+  roundStarted: false,
+  setRoundStarted: () => {},
 });
 
 export const useSocket = () => {
@@ -32,7 +40,9 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
   const [users, setUsers] = useState<User[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [roundNo, setRoundNo] = useState(1);
   const [topic, setTopic] = useState("");
+  const [roundStarted, setRoundStarted] = useState(false);
   const { user } = useKindeBrowserClient();
 
   useEffect(() => {
@@ -54,6 +64,7 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
     });
 
     socketInstance.on("setTopic", setTopic);
+    socketInstance.on("setStartRound", () => setRoundStarted(true));
 
     setSocket(socketInstance);
 
@@ -64,7 +75,18 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
 
   return (
     <SocketContext.Provider
-      value={{ socket, isConnected, users, setUsers, topic, setTopic }}
+      value={{
+        socket,
+        isConnected,
+        users,
+        setUsers,
+        topic,
+        setTopic,
+        roundNo,
+        setRoundNo,
+        roundStarted,
+        setRoundStarted,
+      }}
     >
       {children}
     </SocketContext.Provider>
