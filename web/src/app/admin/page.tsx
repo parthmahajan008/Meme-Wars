@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import BackButton from "./back-button";
 import Sidebar from "./sidebar";
 import AdminView from "./admin-view";
-import { useSocket } from "@/contexts/socket-provider";
 
 export default async function AdminPage() {
   const { isAuthenticated, getPermission, getUser } = getKindeServerSession();
@@ -15,7 +14,7 @@ export default async function AdminPage() {
 
   if (!authenticated || !user) redirect("/");
 
-  if (!hasAdminPermission)
+  if (!hasAdminPermission?.isGranted)
     return (
       <main className="flex h-screen flex-col items-center justify-center gap-4">
         <h1 className="text-xl">You don&apos;t have admin permissions</h1>

@@ -45,6 +45,7 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
 
     socketInstance.on("disconnect", () => {
       setIsConnected(false);
+      socketInstance.emit("removeUser", user);
     });
 
     setSocket(socketInstance);

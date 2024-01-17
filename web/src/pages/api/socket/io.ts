@@ -49,6 +49,12 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
         const users = await getUsers(io);
         io.in("admin").emit("getUsers", users);
       });
+
+      socket.on("disconnect", async () => {
+        console.log("[REMOVE USER]");
+        const users = await getUsers(io);
+        io.in("admin").emit("getUsers", users);
+      });
     });
 
     res.socket.server.io = io;
