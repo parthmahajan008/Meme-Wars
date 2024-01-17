@@ -61,7 +61,9 @@ export default function AdminView() {
   return (
     <div className="flex grow flex-col items-center justify-center p-4">
       {memeStarted && (
-        <div className="text-center text-xl">{remainingTime}</div>
+        <div className="mb-16 text-center text-7xl font-medium">
+          {remainingTime}
+        </div>
       )}
       {!roundStarted && (
         <>

@@ -28,7 +28,9 @@ export default function PlayPage() {
       {roundStarted && (
         <div className="p-4">
           {memeStarted && (
-            <div className="text-center text-xl">{remainingTime}</div>
+            <div className="mb-4 text-center text-2xl font-medium">
+              {remainingTime}
+            </div>
           )}
           <TopicContainer />
           {memeStarted && <div>MEMEING</div>}

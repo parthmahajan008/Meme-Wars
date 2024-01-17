@@ -10,7 +10,7 @@ export const config = {
   },
 };
 
-const ROUND_DURATION = 60; // in seconds
+const ROUND_DURATION = 10; // in seconds
 let roundStarted = false;
 let roundTopic = "";
 let startMemeing = false;
