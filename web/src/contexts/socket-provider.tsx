@@ -1,7 +1,7 @@
 "use client";
 
+import { User } from "@/types";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
-import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/dist/types";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Socket } from "socket.io";
 import { io as ClientIO } from "socket.io-client";
@@ -9,8 +9,8 @@ import { io as ClientIO } from "socket.io-client";
 type SocketContextType = {
   socket: Socket | null;
   isConnected: boolean;
-  users: KindeUser[];
-  setUsers: React.Dispatch<React.SetStateAction<KindeUser[]>>;
+  users: User[];
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
 };
 
 const SocketContext = createContext<SocketContextType>({
@@ -25,7 +25,7 @@ export const useSocket = () => {
 };
 
 export default function SocketProvider({ children }: React.PropsWithChildren) {
-  const [users, setUsers] = useState<KindeUser[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const { user } = useKindeBrowserClient();

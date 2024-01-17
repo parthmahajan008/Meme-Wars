@@ -1,8 +1,7 @@
 import { Server as NetServer } from "http";
 import { NextApiRequest } from "next";
 import { Server as ServerIO } from "socket.io";
-import { NextApiResponseServerIo } from "../../../../types";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/dist/types/server";
+import { NextApiResponseServerIo } from "@/types";
 
 export const config = {
   api: {
@@ -37,7 +36,7 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
       socket.on("newUser", async (user) => {
         console.log("[NEW USER]");
         await socket.join(`user:${user.id}`);
-        socket.data.user = user;
+        socket.data.user = { ...user, role: "PLAYER" };
         const users = await getUsers(io);
         io.in("admin").emit("getUsers", users);
       });
@@ -45,6 +44,8 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
       socket.on("newAdmin", async () => {
         console.log("[NEW ADMIN]");
         await socket.join("admin");
+        const user = socket.data.user;
+        socket.data.user = { ...user, role: "ADMIN" };
         const users = await getUsers(io);
         io.in("admin").emit("getUsers", users);
       });

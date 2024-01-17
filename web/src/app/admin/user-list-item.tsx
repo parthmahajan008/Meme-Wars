@@ -1,8 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/dist/types";
+import { User, Role } from "@/types";
 
 type UserListItemProps = {
-  user: KindeUser;
+  user: User;
 };
 
 export default function UserListItem({ user }: UserListItemProps) {
