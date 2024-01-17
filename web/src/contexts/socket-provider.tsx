@@ -17,6 +17,8 @@ type SocketContextType = {
   setTopic: React.Dispatch<React.SetStateAction<string>>;
   roundStarted: boolean;
   setRoundStarted: React.Dispatch<React.SetStateAction<boolean>>;
+  memeStarted: boolean;
+  setMemeStarted: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const SocketContext = createContext<SocketContextType>({
@@ -30,6 +32,8 @@ const SocketContext = createContext<SocketContextType>({
   setTopic: () => {},
   roundStarted: false,
   setRoundStarted: () => {},
+  memeStarted: false,
+  setMemeStarted: () => {},
 });
 
 export const useSocket = () => {
@@ -43,6 +47,7 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
   const [roundNo, setRoundNo] = useState(1);
   const [topic, setTopic] = useState("");
   const [roundStarted, setRoundStarted] = useState(false);
+  const [memeStarted, setMemeStarted] = useState(false);
   const { user } = useKindeBrowserClient();
 
   useEffect(() => {
@@ -65,6 +70,7 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
 
     socketInstance.on("setTopic", setTopic);
     socketInstance.on("setStartRound", () => setRoundStarted(true));
+    socketInstance.on("setStartMemeing", () => setMemeStarted(true));
 
     setSocket(socketInstance);
 
@@ -86,6 +92,8 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
         setRoundNo,
         roundStarted,
         setRoundStarted,
+        memeStarted,
+        setMemeStarted,
       }}
     >
       {children}

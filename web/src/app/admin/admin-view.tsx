@@ -8,17 +8,17 @@ import { ReloadIcon } from "@radix-ui/react-icons";
 import TopicContainer from "@/components/topic-container";
 
 export default function AdminView() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [remainingTime, setRemainingTime] = useState("");
+  const [isTopicLoading, setIsTopicLoading] = useState(false);
   const {
     isConnected,
     socket,
     users,
     setUsers,
     topic,
-    setTopic,
     roundNo,
     roundStarted,
-    setRoundStarted,
+    memeStarted,
   } = useSocket();
 
   const joinAdminRoom = useCallback(async () => {
@@ -30,6 +30,7 @@ export default function AdminView() {
   useEffect(() => {
     if (!socket || !isConnected) return;
     joinAdminRoom();
+    socket.on("setRemainingTime", setRemainingTime);
   }, [socket, isConnected, joinAdminRoom]);
 
   const startRound = useCallback(
@@ -42,21 +43,36 @@ export default function AdminView() {
 
   const generateNewTopic = useCallback(async () => {
     if (!socket || !isConnected) return;
-    setIsLoading(true);
+    setIsTopicLoading(true);
     const res = await axios.get("/api/generate/topic");
     const topic = res.data.topic;
     socket.emit("newTopic", topic);
-    setIsLoading(false);
+    setIsTopicLoading(false);
   }, [socket, isConnected]);
+
+  const startMemeing = useCallback(
+    async (roundNo: number) => {
+      if (!socket || !isConnected) return;
+      socket.emit("startMemeing", roundNo);
+    },
+    [socket, isConnected],
+  );
 
   return (
     <div className="flex grow flex-col items-center justify-center p-4">
+      {memeStarted && (
+        <div className="text-center text-xl">{remainingTime}</div>
+      )}
       {!roundStarted && (
         <>
           <p className="mx-auto w-fit bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-7xl font-bold text-transparent">
             Round {roundNo}
           </p>
-          <Button size="lg" className="mt-8" onClick={() => startRound(1)}>
+          <Button
+            size="lg"
+            className="mt-8"
+            onClick={() => startRound(roundNo)}
+          >
             Start Round
           </Button>
         </>
@@ -64,18 +80,29 @@ export default function AdminView() {
       {roundStarted && (
         <>
           <TopicContainer>
-            <Button
-              disabled={isLoading}
-              size="lg"
-              onClick={() => generateNewTopic()}
-            >
-              {isLoading && (
-                <ReloadIcon className="mr-2 aspect-square h-5 animate-spin" />
-              )}
-              Generate New Topic
-            </Button>
+            {!memeStarted && (
+              <Button
+                disabled={isTopicLoading}
+                size="lg"
+                onClick={generateNewTopic}
+              >
+                {isTopicLoading && (
+                  <ReloadIcon className="mr-2 aspect-square h-5 animate-spin" />
+                )}
+                Generate New Topic
+              </Button>
+            )}
           </TopicContainer>
-          <Button className="mt-32">Start Memeing</Button>
+          {!memeStarted && (
+            <Button
+              className="mt-32"
+              disabled={topic === "" || isTopicLoading}
+              size="lg"
+              onClick={() => startMemeing(roundNo)}
+            >
+              Start Memeing
+            </Button>
+          )}
         </>
       )}
     </div>

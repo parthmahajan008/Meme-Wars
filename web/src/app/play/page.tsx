@@ -7,8 +7,10 @@ import { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 
 export default function PlayPage() {
+  const [remainingTime, setRemainingTime] = useState("");
   const [redirectToNotFound, setRedirectToNotFound] = useState(false);
-  const { socket, isConnected, topic, roundNo, roundStarted } = useSocket();
+  const { socket, isConnected, topic, roundNo, roundStarted, memeStarted } =
+    useSocket();
 
   if (redirectToNotFound) notFound();
 
@@ -17,6 +19,7 @@ export default function PlayPage() {
     socket.emit("checkRoom", `round:${roundNo}`, (res: any) => {
       setRedirectToNotFound(!res.data);
     });
+    socket.on("setRemainingTime", setRemainingTime);
   }, [socket, roundNo, isConnected]);
 
   return (
@@ -24,7 +27,11 @@ export default function PlayPage() {
       {!roundStarted && <RoundLoading />}
       {roundStarted && (
         <div className="p-4">
+          {memeStarted && (
+            <div className="text-center text-xl">{remainingTime}</div>
+          )}
           <TopicContainer />
+          {memeStarted && <div>MEMEING</div>}
         </div>
       )}
     </main>
