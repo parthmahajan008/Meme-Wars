@@ -8,6 +8,7 @@ import { ReloadIcon } from "@radix-ui/react-icons";
 import TopicContainer from "@/components/topic-container";
 import { Role, User } from "@/types";
 import MemeContainer from "@/components/meme-container";
+import VoteBar from "@/components/vote-bar";
 
 export default function AdminView() {
   const [remainingTime, setRemainingTime] = useState("");
@@ -155,7 +156,8 @@ export default function AdminView() {
           )}
           {canStartVotingRound && canGoToNextMeme && (
             <div className="mt-16 flex w-full flex-col items-center gap-8 px-16">
-              <MemeContainer />
+              <VoteBar />
+              <MemeContainer isAdmin />
               <Button
                 className="mt-16"
                 size="lg"

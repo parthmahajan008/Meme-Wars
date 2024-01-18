@@ -9,12 +9,22 @@ import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { Button } from "@/components/ui/button";
 import { FileUpload } from "./file-upload";
 import { SubmitForm } from "./submit-form";
+import MemeContainer from "@/components/meme-container";
+import VoteBar from "@/components/vote-bar";
 
 export default function PlayPage() {
   const [remainingTime, setRemainingTime] = useState("");
   const [redirectToNotFound, setRedirectToNotFound] = useState(false);
-  const { socket, isConnected, topic, roundNo, roundStarted, memeStarted } =
-    useSocket();
+  const {
+    socket,
+    isConnected,
+    topic,
+    roundNo,
+    roundStarted,
+    memeStarted,
+    player1,
+    player2,
+  } = useSocket();
 
   if (redirectToNotFound) notFound();
 
@@ -25,11 +35,10 @@ export default function PlayPage() {
     });
     socket.on("setRemainingTime", setRemainingTime);
   }, [socket, roundNo, isConnected]);
-  console.log(memeStarted);
+
   return (
     <main className="h-screen">
       <Button variant={"outline"} className="ml-auto">
-        {" "}
         <LogoutLink>Log out</LogoutLink>
       </Button>
       {!roundStarted && <RoundLoading />}
@@ -42,6 +51,12 @@ export default function PlayPage() {
           )}
           <TopicContainer />
           {memeStarted && <SubmitForm />}
+          {(player1 || player2) && (
+            <div className="mt-16 flex w-full flex-col items-center gap-8 px-16">
+              <VoteBar />
+              <MemeContainer />
+            </div>
+          )}
         </div>
       )}
     </main>

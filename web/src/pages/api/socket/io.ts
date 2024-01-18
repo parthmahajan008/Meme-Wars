@@ -1,7 +1,7 @@
 import { Server as NetServer } from "http";
 import { NextApiRequest } from "next";
 import { Server as ServerIO } from "socket.io";
-import { NextApiResponseServerIo, User } from "@/types";
+import { NextApiResponseServerIo, Role, User, UserWithMeme } from "@/types";
 import { CountdownTimer } from "@/lib/countdown-timer";
 import { shuffle } from "@/lib/utils";
 
@@ -11,17 +11,18 @@ export const config = {
   },
 };
 
-const ROUND_DURATION = 60; // in seconds
+const ROUND_DURATION = 40; // in seconds
 let roundStarted = false;
 let roundTopic = "";
 let startMemeing = false;
 let timer: CountdownTimer;
-let roundPlayers: User[];
+let roundPlayers: UserWithMeme[];
 let currentIndex = 0;
 let canStartVotingRound = false;
 let startVotingRound = false;
-let player1: User;
-let player2: User;
+let player1: UserWithMeme;
+let player2: UserWithMeme;
+let totalVotesCount = 0;
 
 async function getUsers(io: ServerIO) {
   const sockets = await io.fetchSockets();
@@ -32,6 +33,22 @@ async function getUsers(io: ServerIO) {
       const userId = room.split(":")[1];
       return sockets.find((s) => s.data.user && s.data.user.id === userId)!.data
         .user;
+    });
+
+  return users;
+}
+
+async function getUsersInRoom(io: ServerIO, roomName: string) {
+  const sockets = await io.fetchSockets();
+  const rooms = io.sockets.adapter.rooms.keys();
+  const users = [...rooms]
+    .filter((room) => room.includes("user:"))
+    .map((room) => {
+      const userId = room.split(":")[1];
+      return sockets.find(
+        (s) =>
+          s.data.user && s.data.user.id === userId && s.rooms.has(roomName),
+      )!.data.user;
     });
 
   return users;
@@ -115,23 +132,55 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
         }, 1000);
       });
 
-      socket.on("startVotingRound", (roundNo, players) => {
-        io.in("admin").emit("canGoToNextMeme", true);
+      socket.on("startVotingRound", async (roundNo) => {
+        const users: UserWithMeme[] = await getUsersInRoom(
+          io,
+          `round:${roundNo}`,
+        );
+        const players = users.filter((user) => user.role === Role.PLAYER);
         roundPlayers = shuffle(players);
+        currentIndex = 0;
         startVotingRound = true;
+        io.in("admin").emit("canGoToNextMeme", true);
       });
 
       socket.on("nextMeme", (roundNo) => {
+        totalVotesCount = 0;
         if (currentIndex + 1 >= roundPlayers.length) {
           player1 = roundPlayers[currentIndex];
-          socket.emit("showNextMeme", player1, null);
+          io.in(`round:${roundNo}`)
+            .in("admin")
+            .emit("showNextMeme", player1, null);
           return;
         }
 
         player1 = roundPlayers[currentIndex];
         player2 = roundPlayers[currentIndex + 1];
-        socket.emit("showNextMeme", player1, player2);
+        io.in(`round:${roundNo}`)
+          .in("admin")
+          .emit("showNextMeme", player1, player2);
         currentIndex += 2;
+      });
+
+      socket.on("submitMeme", (imageUrl: string, prompt: string, callback) => {
+        socket.data.user.meme = { imageUrl, prompt };
+        callback({ status: "ok", submitted: true });
+      });
+
+      socket.on("setNoOfUsersInRound", (callback) => {
+        callback({ status: "ok", noOfUsersInRound: roundPlayers?.length ?? 0 });
+      });
+
+      socket.on("setUsersInRound", (callback) => {
+        callback({ status: "ok", usersInRound: roundPlayers ?? [] });
+      });
+
+      socket.on("vote", (roundNo, player: UserWithMeme, callback) => {
+        totalVotesCount++;
+        io.in(`round:${roundNo}`)
+          .in("admin")
+          .emit("setVote", player.id, totalVotesCount);
+        callback({ status: "ok", submitted: true });
       });
     });
 

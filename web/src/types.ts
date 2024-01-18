@@ -20,7 +20,7 @@ export type User = KindeUser & { role: Role };
 
 export type UserWithMeme = User & {
   meme: {
-    image: string;
+    imageUrl: string;
     prompt: string;
   };
 };

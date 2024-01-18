@@ -11,6 +11,8 @@ type SocketContextType = {
   isConnected: boolean;
   users: User[];
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  usersInRound: User[];
+  setUsersInRound: React.Dispatch<React.SetStateAction<User[]>>;
   roundNo: number;
   setRoundNo: React.Dispatch<React.SetStateAction<number>>;
   topic: string;
@@ -30,6 +32,8 @@ const SocketContext = createContext<SocketContextType>({
   isConnected: false,
   users: [],
   setUsers: () => {},
+  usersInRound: [],
+  setUsersInRound: () => {},
   roundNo: 1,
   setRoundNo: () => {},
   topic: "",
@@ -50,6 +54,7 @@ export const useSocket = () => {
 
 export default function SocketProvider({ children }: React.PropsWithChildren) {
   const [users, setUsers] = useState<User[]>([]);
+  const [usersInRound, setUsersInRound] = useState<User[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [roundNo, setRoundNo] = useState(1);
@@ -101,6 +106,8 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
         isConnected,
         users,
         setUsers,
+        usersInRound,
+        setUsersInRound,
         topic,
         setTopic,
         roundNo,
