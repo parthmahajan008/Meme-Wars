@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import SocketProvider from "@/contexts/socket-provider";
-
+import { Toaster } from "@/components/ui/toaster"
+ 
 const montserrat = Montserrat({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -19,7 +20,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={montserrat.className}>
-        <SocketProvider>{children}</SocketProvider>
+        <SocketProvider>{children}<Toaster /></SocketProvider>
+
       </body>
     </html>
   );

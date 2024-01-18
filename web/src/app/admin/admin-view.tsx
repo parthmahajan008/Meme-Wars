@@ -8,7 +8,7 @@ import { ReloadIcon } from "@radix-ui/react-icons";
 import TopicContainer from "@/components/topic-container";
 
 export default function AdminView() {
-  const [remainingTime, setRemainingTime] = useState("");
+  const [remainingTime, setRemainingTime] = useState("30");
   const [isTopicLoading, setIsTopicLoading] = useState(false);
   const {
     isConnected,
