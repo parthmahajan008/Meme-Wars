@@ -15,10 +15,7 @@ export default function NotFound() {
 
   const memes = [
     "https://media.giphy.com/media/yb0NtNTumhp16/giphy.gif",
-    "https://media.giphy.com/media/U72UGZR5wNXzO8VYIW/giphy.gif",
-    "https://media.giphy.com/media/Ta3v3I4GI1gH7Rqek6/giphy.gif",
     "https://media.giphy.com/media/uLnPIWsqIz2aA/giphy.gif",
-    "https://media.giphy.com/media/mPytjcsG3XS4o/giphy.gif",
     "https://media.giphy.com/media/kHU8W94VS329y/giphy.gif",
     "https://media.giphy.com/media/8zYunr3Hg8XPq/giphy.gif",
   ];
