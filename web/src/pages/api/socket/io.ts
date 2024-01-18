@@ -1,8 +1,9 @@
 import { Server as NetServer } from "http";
 import { NextApiRequest } from "next";
 import { Server as ServerIO } from "socket.io";
-import { NextApiResponseServerIo } from "@/types";
+import { NextApiResponseServerIo, User } from "@/types";
 import { CountdownTimer } from "@/lib/countdown-timer";
+import { shuffle } from "@/lib/utils";
 
 export const config = {
   api: {
@@ -15,6 +16,12 @@ let roundStarted = false;
 let roundTopic = "";
 let startMemeing = false;
 let timer: CountdownTimer;
+let roundPlayers: User[];
+let currentIndex = 0;
+let canStartVotingRound = false;
+let startVotingRound = false;
+let player1: User;
+let player2: User;
 
 async function getUsers(io: ServerIO) {
   const sockets = await io.fetchSockets();
@@ -99,8 +106,32 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
           io.in(`round:${roundNo}`)
             .in("admin")
             .emit("setRemainingTime", timer.getRemainingTime());
-          if (timer.hasStopped()) clearInterval(interval);
+          if (timer.hasStopped()) {
+            clearInterval(interval);
+            io.in(`round:${roundNo}`).in("admin").emit("setEndMemeing");
+            io.in("admin").emit("canStartVotingRound", true);
+            startMemeing = false;
+          }
         }, 1000);
+      });
+
+      socket.on("startVotingRound", (roundNo, players) => {
+        io.in("admin").emit("canGoToNextMeme", true);
+        roundPlayers = shuffle(players);
+        startVotingRound = true;
+      });
+
+      socket.on("nextMeme", (roundNo) => {
+        if (currentIndex + 1 >= roundPlayers.length) {
+          player1 = roundPlayers[currentIndex];
+          socket.emit("showNextMeme", player1, null);
+          return;
+        }
+
+        player1 = roundPlayers[currentIndex];
+        player2 = roundPlayers[currentIndex + 1];
+        socket.emit("showNextMeme", player1, player2);
+        currentIndex += 2;
       });
     });
 

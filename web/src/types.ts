@@ -17,3 +17,10 @@ export const enum Role {
 }
 
 export type User = KindeUser & { role: Role };
+
+export type UserWithMeme = User & {
+  meme: {
+    image: string;
+    prompt: string;
+  };
+};

@@ -1,6 +1,6 @@
 "use client";
 
-import { User } from "@/types";
+import { User, UserWithMeme } from "@/types";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Socket } from "socket.io";
@@ -19,6 +19,10 @@ type SocketContextType = {
   setRoundStarted: React.Dispatch<React.SetStateAction<boolean>>;
   memeStarted: boolean;
   setMemeStarted: React.Dispatch<React.SetStateAction<boolean>>;
+  player1: UserWithMeme | null;
+  setPlayer1: React.Dispatch<React.SetStateAction<UserWithMeme | null>>;
+  player2: UserWithMeme | null;
+  setPlayer2: React.Dispatch<React.SetStateAction<UserWithMeme | null>>;
 };
 
 const SocketContext = createContext<SocketContextType>({
@@ -34,6 +38,10 @@ const SocketContext = createContext<SocketContextType>({
   setRoundStarted: () => {},
   memeStarted: false,
   setMemeStarted: () => {},
+  player1: null,
+  setPlayer1: () => {},
+  player2: null,
+  setPlayer2: () => {},
 });
 
 export const useSocket = () => {
@@ -48,6 +56,8 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
   const [topic, setTopic] = useState("");
   const [roundStarted, setRoundStarted] = useState(false);
   const [memeStarted, setMemeStarted] = useState(false);
+  const [player1, setPlayer1] = useState<UserWithMeme | null>(null);
+  const [player2, setPlayer2] = useState<UserWithMeme | null>(null);
   const { user } = useKindeBrowserClient();
 
   useEffect(() => {
@@ -71,6 +81,11 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
     socketInstance.on("setTopic", setTopic);
     socketInstance.on("setStartRound", () => setRoundStarted(true));
     socketInstance.on("setStartMemeing", () => setMemeStarted(true));
+    socketInstance.on("setEndMemeing", () => setMemeStarted(false));
+    socketInstance.on("showNextMeme", (player1Data, player2Data) => {
+      setPlayer1(player1Data);
+      setPlayer2(player2Data);
+    });
 
     setSocket(socketInstance);
 
@@ -94,6 +109,10 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
         setRoundStarted,
         memeStarted,
         setMemeStarted,
+        player1,
+        setPlayer1,
+        player2,
+        setPlayer2,
       }}
     >
       {children}

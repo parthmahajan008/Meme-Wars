@@ -2,13 +2,17 @@
 
 import { Button } from "@/components/ui/button";
 import { useSocket } from "@/contexts/socket-provider";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import TopicContainer from "@/components/topic-container";
+import { Role, User } from "@/types";
+import MemeContainer from "@/components/meme-container";
 
 export default function AdminView() {
   const [remainingTime, setRemainingTime] = useState("");
+  const [canStartVotingRound, setCanstartVotingRound] = useState(false);
+  const [canGoToNextMeme, setCanGoToNextMeme] = useState(false);
   const [isTopicLoading, setIsTopicLoading] = useState(false);
   const {
     isConnected,
@@ -21,6 +25,22 @@ export default function AdminView() {
     memeStarted,
   } = useSocket();
 
+  const usersByRole = useMemo(
+    () =>
+      users?.reduce(
+        (prev: Record<Role, User[]>, user: User) => {
+          if (user.role in prev) {
+            prev[user.role].push(user);
+          } else {
+            prev[user.role] = [user];
+          }
+          return prev;
+        },
+        {} as Record<Role, User[]>,
+      ),
+    [users],
+  );
+
   const joinAdminRoom = useCallback(async () => {
     if (!socket || !isConnected) return;
     socket.emit("newAdmin");
@@ -31,6 +51,8 @@ export default function AdminView() {
     if (!socket || !isConnected) return;
     joinAdminRoom();
     socket.on("setRemainingTime", setRemainingTime);
+    socket.on("canStartVotingRound", setCanstartVotingRound);
+    socket.on("canGoToNextMeme", setCanGoToNextMeme);
   }, [socket, isConnected, joinAdminRoom]);
 
   const startRound = useCallback(
@@ -58,8 +80,25 @@ export default function AdminView() {
     [socket, isConnected],
   );
 
+  const startVotingRound = useCallback(
+    async (roundNo: number) => {
+      if (!socket || !isConnected) return;
+      const players = usersByRole[Role.PLAYER] ?? [];
+      socket.emit("startVotingRound", roundNo, players);
+    },
+    [socket, isConnected, usersByRole],
+  );
+
+  const nextMeme = useCallback(
+    async (roundNo: number) => {
+      if (!socket || !isConnected) return;
+      socket.emit("nextMeme", roundNo);
+    },
+    [socket, isConnected],
+  );
+
   return (
-    <div className="flex grow flex-col items-center justify-center p-4">
+    <div className="flex grow flex-col items-center justify-center overflow-auto p-4">
       {memeStarted && (
         <div className="mb-16 text-center text-7xl font-medium">
           {remainingTime}
@@ -82,7 +121,7 @@ export default function AdminView() {
       {roundStarted && (
         <>
           <TopicContainer>
-            {!memeStarted && (
+            {!memeStarted && !canStartVotingRound && (
               <Button
                 disabled={isTopicLoading}
                 size="lg"
@@ -95,7 +134,7 @@ export default function AdminView() {
               </Button>
             )}
           </TopicContainer>
-          {!memeStarted && (
+          {!memeStarted && !canStartVotingRound && (
             <Button
               className="mt-32"
               disabled={topic === "" || isTopicLoading}
@@ -104,6 +143,27 @@ export default function AdminView() {
             >
               Start Memeing
             </Button>
+          )}
+          {canStartVotingRound && !canGoToNextMeme && (
+            <Button
+              className="mt-32"
+              size="lg"
+              onClick={() => startVotingRound(roundNo)}
+            >
+              Start Voting
+            </Button>
+          )}
+          {canStartVotingRound && canGoToNextMeme && (
+            <div className="mt-16 flex w-full flex-col items-center gap-8 px-16">
+              <MemeContainer />
+              <Button
+                className="mt-16"
+                size="lg"
+                onClick={() => nextMeme(roundNo)}
+              >
+                Next Meme
+              </Button>
+            </div>
           )}
         </>
       )}
