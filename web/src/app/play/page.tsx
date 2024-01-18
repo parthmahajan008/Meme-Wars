@@ -5,9 +5,10 @@ import { useSocket } from "@/contexts/socket-provider";
 import RoundLoading from "./round-loading";
 import { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
-import {LogoutLink} from "@kinde-oss/kinde-auth-nextjs/components";
+import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { Button } from "@/components/ui/button";
-import { FileUpload } from "./fileUpload";
+import { FileUpload } from "./file-upload";
+import { SubmitForm } from "./submit-form";
 
 export default function PlayPage() {
   const [remainingTime, setRemainingTime] = useState("");
@@ -24,10 +25,13 @@ export default function PlayPage() {
     });
     socket.on("setRemainingTime", setRemainingTime);
   }, [socket, roundNo, isConnected]);
-  console.log(memeStarted)
+  console.log(memeStarted);
   return (
     <main className="h-screen">
-     <Button variant={"outline"} className="ml-auto"> <LogoutLink>Log out</LogoutLink></Button>
+      <Button variant={"outline"} className="ml-auto">
+        {" "}
+        <LogoutLink>Log out</LogoutLink>
+      </Button>
       {!roundStarted && <RoundLoading />}
       {roundStarted && (
         <div className="p-4">
@@ -37,15 +41,7 @@ export default function PlayPage() {
             </div>
           )}
           <TopicContainer />
-          {memeStarted && <FileUpload
-            endpoint="image"
-            onChange={(url) => {
-              if (url) {
-                console.log(url)
-                // onSubmit({ url: url });
-              }
-            }}
-          />}
+          {memeStarted && <SubmitForm />}
         </div>
       )}
     </main>
