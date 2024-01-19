@@ -3,11 +3,13 @@
 import { Role, User } from "@/types";
 import UserListItem from "./user-list-item";
 import { useSocket } from "@/contexts/socket-provider";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export default function Sidebar() {
-  const { users, isConnected } = useSocket();
+  const { users, isConnected, socket } = useSocket();
+
   const usersByRole = useMemo(
     () =>
       users?.reduce(
@@ -26,7 +28,10 @@ export default function Sidebar() {
 
   const admins = usersByRole[Role.ADMIN];
   const players = usersByRole[Role.PLAYER];
-
+  const reset = useCallback(() => {
+    if (!socket || !isConnected) return;
+    socket.emit("reset");
+  }, [socket, isConnected]);
   return (
     <aside className="flex h-full w-[300px] shrink-0 flex-col overflow-y-auto shadow-lg">
       <div className="sticky top-0 z-10 w-full bg-white">
@@ -61,6 +66,7 @@ export default function Sidebar() {
             Connecting...
           </Badge>
         )}
+        <Button onClick={() => reset()}>Reset</Button>
       </div>
     </aside>
   );
