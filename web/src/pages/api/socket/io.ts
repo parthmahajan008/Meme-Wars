@@ -11,7 +11,7 @@ export const config = {
   },
 };
 
-const ROUND_DURATION = 30; // in seconds
+const ROUND_DURATION = 10; // in seconds
 let roundStarted = false;
 let roundTopic = "";
 let startMemeing = false;
@@ -48,9 +48,9 @@ async function getUsersInRoom(io: ServerIO, roomName: string) {
         return sockets.find((s) => s.data.user && s.data.user.id === userId)!;
       });
 
-    const usersInRoom = userSockets.filter((userSocket) =>
-      userSocket.rooms.has(roomName),
-    ).map(userSocket => userSocket.data.user);
+    const usersInRoom = userSockets
+      .filter((userSocket) => userSocket.rooms.has(roomName))
+      .map((userSocket) => userSocket.data.user);
     return usersInRoom;
   } catch (err) {
     console.log(err);
@@ -113,13 +113,14 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
 
       socket.on("startRound", (roundNo) => {
         roundStarted = true;
-        io.in(`round:${roundNo}`).in("admin").emit("setStartRound");
+        // io.in(`round:${roundNo}`).in("admin").emit("setStartRound");
+        io.emit("setStartRound");
       });
 
-      socket.on("startMemeing", (roundNo) => {
+      socket.on("startMemeing", (roundNo, roundTime) => {
         startMemeing = true;
         io.in(`round:${roundNo}`).in("admin").emit("setStartMemeing");
-        timer = new CountdownTimer(ROUND_DURATION, () => {
+        timer = new CountdownTimer(roundTime, () => {
           console.log("MEME TIME OVER");
         });
         timer.start();
@@ -153,9 +154,9 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
         if (currentIndex >= roundPlayers.length) {
           player1 = null;
           player2 = null;
-          io.in(`round:${roundNo}`)
-            .in("admin")
-            .emit("showNextMeme", null, null);
+          // io.in(`round:${roundNo}`)
+          //   .in("admin")
+          io.emit("showNextMeme", null, null);
           io.in("admin").emit("canGoToNextMeme", false);
           io.in("admin").emit("canStartVotingRound", false);
           io.in("admin").emit("setShowNextRoundPlayers", true);
@@ -164,9 +165,9 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
 
         player1 = roundPlayers[currentIndex];
         player2 = roundPlayers?.[currentIndex + 1] ?? null;
-        io.in(`round:${roundNo}`)
-          .in("admin")
-          .emit("showNextMeme", player1, player2);
+        // io.in(`round:${roundNo}`)
+        // .in("admin")
+        io.emit("showNextMeme", player1, player2);
         currentIndex += 2;
       });
 
@@ -188,23 +189,20 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
         const playerSockets = sockets.filter(
           (socket) => socket.data.user.id === player.id,
         );
-        console.log({ playerSockets });
         playerSockets.forEach(async (socket) => {
           socket.data.user.selected = isSelected;
           if (isSelected) socket.join(`round:${roundNo + 1}`);
           else socket.leave(`round:${roundNo + 1}`);
-          console.log(socket.rooms);
-          console.log(isSelected);
         });
 
-        io.in("admin").emit("setSelect", isSelected);
+        io.in("admin").emit("setSelect", player.id, isSelected);
       });
 
       socket.on("vote", (roundNo, player: UserWithMeme, callback) => {
         totalVotesCount++;
-        io.in(`round:${roundNo}`)
-          .in("admin")
-          .emit("setVote", player.id, totalVotesCount);
+        // io.in(`round:${roundNo}`)
+        //   .in("admin")
+        io.emit("setVote", player.id, totalVotesCount);
         callback({ status: "ok", submitted: true });
       });
 

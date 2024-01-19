@@ -21,7 +21,7 @@ const formSchema = z.object({
 
 export const SubmitForm = () => {
   const [isEditing, setIsEditing] = useState(true);
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState("abcd");
   const [prompt, setPrompt] = useState("");
   const toggleEdit = () => setIsEditing((current) => !current);
 

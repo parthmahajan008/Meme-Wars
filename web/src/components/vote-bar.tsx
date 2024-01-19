@@ -8,14 +8,13 @@ export default function VoteBar() {
   const [player1VotesCount, setPlayer1VotesCount] = useState<number>(0);
   const [totalVotesCount, setTotalVotesCount] = useState(0);
   const { socket, isConnected, player1, users } = useSocket();
-  const [noOfUsersInRound, setNoOfUsersInRound] = useState(users?.length ?? 0);
 
   useEffect(() => {
     if (!socket || !isConnected) return;
 
-    socket.emit("setNoOfUsersInRound", (res: any) => {
-      setNoOfUsersInRound(res.noOfUsersInRound);
-    });
+    // socket.emit("setNoOfUsersInRound", (res: any) => {
+    //   setNoOfUsersInRound(res.noOfUsersInRound);
+    // });
 
     const handleVote = (playerId: string, voteCount: number) => {
       if (player1!.id === playerId) {
@@ -42,7 +41,7 @@ export default function VoteBar() {
       <p className="text-center">
         Votes:{" "}
         <span className="font-semibold text-slate-800">{totalVotesCount}</span>{" "}
-        / <span className="text-sm text-slate-500">{noOfUsersInRound}</span>
+        / <span className="text-sm text-slate-500">{users.length}</span>
       </p>
       <div className="mt-2 flex h-8 w-full items-center bg-slate-100">
         {player1Score && (

@@ -11,6 +11,7 @@ import { FileUpload } from "./file-upload";
 import { SubmitForm } from "./submit-form";
 import MemeContainer from "@/components/meme-container";
 import VoteBar from "@/components/vote-bar";
+import NotFound from "./not-found";
 
 export default function PlayPage() {
   const [remainingTime, setRemainingTime] = useState("");
@@ -18,7 +19,6 @@ export default function PlayPage() {
   const {
     socket,
     isConnected,
-    topic,
     roundNo,
     roundStarted,
     memeStarted,
@@ -26,7 +26,8 @@ export default function PlayPage() {
     player2,
   } = useSocket();
 
-  if (redirectToNotFound) notFound();
+  const isVoting = player1 !== null || player2 !== null;
+  console.log({isVoting})
 
   useEffect(() => {
     if (!socket || !isConnected) return;
@@ -35,6 +36,8 @@ export default function PlayPage() {
     });
     socket.on("setRemainingTime", setRemainingTime);
   }, [socket, roundNo, isConnected]);
+
+  if (redirectToNotFound && !isVoting) return <NotFound />;
 
   return (
     <main className="h-screen">
@@ -51,7 +54,7 @@ export default function PlayPage() {
           )}
           <TopicContainer />
           {memeStarted && <SubmitForm />}
-          {(player1 || player2) && (
+          {isVoting && (
             <div className="mt-16 flex w-full flex-col items-center gap-8 px-16">
               <VoteBar />
               <MemeContainer />

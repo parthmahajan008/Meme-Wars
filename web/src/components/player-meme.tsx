@@ -29,7 +29,9 @@ export default function PlayerMeme({
 
   useEffect(() => {
     if (!socket || !isConnected) return;
-    socket.on("setSelect", setIsSelected);
+    socket.on("setSelect", (playerId, selected) => {
+      if (player.id === playerId) setIsSelected(selected);
+    });
   }, [socket, isConnected]);
 
   const handleVote = useCallback(

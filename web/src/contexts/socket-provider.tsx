@@ -83,6 +83,7 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
       socketInstance.emit("removeUser", user);
     });
 
+    socketInstance.on("getUsers", setUsers);
     socketInstance.on("setTopic", setTopic);
     socketInstance.on("setStartRound", () => setRoundStarted(true));
     socketInstance.on("setStartMemeing", () => setMemeStarted(true));

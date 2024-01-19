@@ -10,6 +10,9 @@ import { Role, User, UserWithMeme } from "@/types";
 import MemeContainer from "@/components/meme-container";
 import VoteBar from "@/components/vote-bar";
 import PlayerMeme from "@/components/player-meme";
+import clsx from "clsx";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 export default function AdminView() {
   const [remainingTime, setRemainingTime] = useState("");
@@ -18,6 +21,8 @@ export default function AdminView() {
   const [showNextRoundPlayers, setShowNextRoundPlayers] = useState(false);
   const [nextRoundPlayers, setNextRoundPlayers] = useState<UserWithMeme[]>([]);
   const [isTopicLoading, setIsTopicLoading] = useState(false);
+  const [minutes, setMinutes] = useState(5);
+  const [seconds, setSeconds] = useState(0);
   const {
     isConnected,
     socket,
@@ -27,6 +32,8 @@ export default function AdminView() {
     roundNo,
     roundStarted,
     memeStarted,
+    player1,
+    player2,
   } = useSocket();
 
   const usersByRole = useMemo(
@@ -48,8 +55,7 @@ export default function AdminView() {
   const joinAdminRoom = useCallback(async () => {
     if (!socket || !isConnected) return;
     socket.emit("newAdmin");
-    socket.on("getUsers", setUsers);
-  }, [socket, isConnected, setUsers]);
+  }, [socket, isConnected]);
 
   useEffect(() => {
     if (!socket || !isConnected) return;
@@ -92,9 +98,10 @@ export default function AdminView() {
   const startMemeing = useCallback(
     async (roundNo: number) => {
       if (!socket || !isConnected) return;
-      socket.emit("startMemeing", roundNo);
+      const timer = minutes * 60 + seconds;
+      socket.emit("startMemeing", roundNo, timer);
     },
-    [socket, isConnected],
+    [socket, isConnected, minutes, seconds],
   );
 
   const startVotingRound = useCallback(
@@ -123,8 +130,15 @@ export default function AdminView() {
     [socket, isConnected],
   );
 
+  const isVoting = player1 !== null || player2 !== null;
+
   return (
-    <div className="flex grow flex-col items-center justify-center overflow-auto p-4">
+    <div
+      className={cn(
+        "flex grow flex-col items-center overflow-auto p-4",
+        clsx({ "justify-center": !showNextRoundPlayers }),
+      )}
+    >
       {memeStarted && (
         <div className="mb-16 text-center text-7xl font-medium">
           {remainingTime}
@@ -161,14 +175,35 @@ export default function AdminView() {
             )}
           </TopicContainer>
           {!memeStarted && !canStartVotingRound && !showNextRoundPlayers && (
-            <Button
-              className="mt-32"
-              disabled={topic === "" || isTopicLoading}
-              size="lg"
-              onClick={() => startMemeing(roundNo)}
-            >
-              Start Memeing
-            </Button>
+            <div className="mt-32 flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  value={minutes}
+                  onChange={(e) => setMinutes(e.target.valueAsNumber)}
+                  placeholder="00"
+                  min={0}
+                  max={59}
+                  className="w-24"
+                />
+                <Input
+                  type="number"
+                  value={seconds}
+                  onChange={(e) => setSeconds(e.target.valueAsNumber)}
+                  placeholder="00"
+                  min={0}
+                  max={59}
+                  className="w-24"
+                />
+              </div>
+              <Button
+                disabled={topic === "" || isTopicLoading}
+                size="lg"
+                onClick={() => startMemeing(roundNo)}
+              >
+                Start Memeing
+              </Button>
+            </div>
           )}
           {canStartVotingRound && !canGoToNextMeme && (
             <Button
@@ -181,8 +216,12 @@ export default function AdminView() {
           )}
           {canStartVotingRound && canGoToNextMeme && (
             <div className="mt-16 flex w-full flex-col items-center gap-8 px-16">
-              <VoteBar />
-              <MemeContainer isAdmin />
+              {isVoting && (
+                <>
+                  <VoteBar />
+                  <MemeContainer isAdmin />
+                </>
+              )}
               <Button
                 className="mt-16"
                 size="lg"
