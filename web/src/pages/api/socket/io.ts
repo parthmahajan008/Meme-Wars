@@ -11,17 +11,16 @@ export const config = {
   },
 };
 
-const ROUND_DURATION = 40; // in seconds
+const ROUND_DURATION = 30; // in seconds
 let roundStarted = false;
 let roundTopic = "";
 let startMemeing = false;
 let timer: CountdownTimer;
-let roundPlayers: UserWithMeme[];
+let roundPlayers: UserWithMeme[] = [];
 let currentIndex = 0;
-let canStartVotingRound = false;
 let startVotingRound = false;
-let player1: UserWithMeme;
-let player2: UserWithMeme;
+let player1: UserWithMeme | null = null;
+let player2: UserWithMeme | null = null;
 let totalVotesCount = 0;
 
 async function getUsers(io: ServerIO) {
@@ -39,19 +38,24 @@ async function getUsers(io: ServerIO) {
 }
 
 async function getUsersInRoom(io: ServerIO, roomName: string) {
-  const sockets = await io.fetchSockets();
-  const rooms = io.sockets.adapter.rooms.keys();
-  const users = [...rooms]
-    .filter((room) => room.includes("user:"))
-    .map((room) => {
-      const userId = room.split(":")[1];
-      return sockets.find(
-        (s) =>
-          s.data.user && s.data.user.id === userId && s.rooms.has(roomName),
-      )!.data.user;
-    });
+  try {
+    const sockets = await io.fetchSockets();
+    const rooms = io.sockets.adapter.rooms.keys();
+    const userSockets = [...rooms]
+      .filter((room) => room.includes("user:"))
+      .map((room) => {
+        const userId = room.split(":")[1];
+        return sockets.find((s) => s.data.user && s.data.user.id === userId)!;
+      });
 
-  return users;
+    const usersInRoom = userSockets.filter((userSocket) =>
+      userSocket.rooms.has(roomName),
+    ).map(userSocket => userSocket.data.user);
+    return usersInRoom;
+  } catch (err) {
+    console.log(err);
+    return [];
+  }
 }
 
 const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
@@ -146,16 +150,20 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
 
       socket.on("nextMeme", (roundNo) => {
         totalVotesCount = 0;
-        if (currentIndex + 1 >= roundPlayers.length) {
-          player1 = roundPlayers[currentIndex];
+        if (currentIndex >= roundPlayers.length) {
+          player1 = null;
+          player2 = null;
           io.in(`round:${roundNo}`)
             .in("admin")
-            .emit("showNextMeme", player1, null);
+            .emit("showNextMeme", null, null);
+          io.in("admin").emit("canGoToNextMeme", false);
+          io.in("admin").emit("canStartVotingRound", false);
+          io.in("admin").emit("setShowNextRoundPlayers", true);
           return;
         }
 
         player1 = roundPlayers[currentIndex];
-        player2 = roundPlayers[currentIndex + 1];
+        player2 = roundPlayers?.[currentIndex + 1] ?? null;
         io.in(`round:${roundNo}`)
           .in("admin")
           .emit("showNextMeme", player1, player2);
@@ -175,12 +183,53 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
         callback({ status: "ok", usersInRound: roundPlayers ?? [] });
       });
 
+      socket.on("select", async (roundNo, player, isSelected) => {
+        const sockets = await io.fetchSockets();
+        const playerSockets = sockets.filter(
+          (socket) => socket.data.user.id === player.id,
+        );
+        console.log({ playerSockets });
+        playerSockets.forEach(async (socket) => {
+          socket.data.user.selected = isSelected;
+          if (isSelected) socket.join(`round:${roundNo + 1}`);
+          else socket.leave(`round:${roundNo + 1}`);
+          console.log(socket.rooms);
+          console.log(isSelected);
+        });
+
+        io.in("admin").emit("setSelect", isSelected);
+      });
+
       socket.on("vote", (roundNo, player: UserWithMeme, callback) => {
         totalVotesCount++;
         io.in(`round:${roundNo}`)
           .in("admin")
           .emit("setVote", player.id, totalVotesCount);
         callback({ status: "ok", submitted: true });
+      });
+
+      socket.on("setNextRoundPlayers", async (nextRoundNo, callback) => {
+        const nextRoundPlayers = await getUsersInRoom(
+          io,
+          `round:${nextRoundNo}`,
+        );
+        callback({ status: "ok", nextRoundPlayers });
+      });
+
+      socket.on("goToNextRound", async (roundNo: number) => {
+        const sockets = await io.fetchSockets();
+        sockets.forEach((socket) => {
+          if (socket.rooms.has("admin")) {
+            socket.join(`round:${roundNo}`);
+          }
+        });
+        io.in("admin").emit("setShowNextRoundPlayers", false);
+        io.in(`round:${roundNo}`)
+          .in("admin")
+          .emit("setNextRound", roundNo + 1);
+        roundStarted = false;
+        roundTopic = "";
+        roundPlayers = [];
       });
     });
 

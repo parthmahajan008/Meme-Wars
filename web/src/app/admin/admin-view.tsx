@@ -6,14 +6,17 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import TopicContainer from "@/components/topic-container";
-import { Role, User } from "@/types";
+import { Role, User, UserWithMeme } from "@/types";
 import MemeContainer from "@/components/meme-container";
 import VoteBar from "@/components/vote-bar";
+import PlayerMeme from "@/components/player-meme";
 
 export default function AdminView() {
   const [remainingTime, setRemainingTime] = useState("");
   const [canStartVotingRound, setCanstartVotingRound] = useState(false);
   const [canGoToNextMeme, setCanGoToNextMeme] = useState(false);
+  const [showNextRoundPlayers, setShowNextRoundPlayers] = useState(false);
+  const [nextRoundPlayers, setNextRoundPlayers] = useState<UserWithMeme[]>([]);
   const [isTopicLoading, setIsTopicLoading] = useState(false);
   const {
     isConnected,
@@ -54,7 +57,20 @@ export default function AdminView() {
     socket.on("setRemainingTime", setRemainingTime);
     socket.on("canStartVotingRound", setCanstartVotingRound);
     socket.on("canGoToNextMeme", setCanGoToNextMeme);
+    socket.on("setShowNextRoundPlayers", setShowNextRoundPlayers);
   }, [socket, isConnected, joinAdminRoom]);
+
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    if (showNextRoundPlayers) {
+      socket.emit("setNextRoundPlayers", roundNo + 1, (res: any) =>
+        setNextRoundPlayers(res.nextRoundPlayers),
+      );
+    } else {
+      setNextRoundPlayers([]);
+    }
+  }, [socket, isConnected, showNextRoundPlayers]);
 
   const startRound = useCallback(
     async (roundNo: number) => {
@@ -98,6 +114,15 @@ export default function AdminView() {
     [socket, isConnected],
   );
 
+  const goToNextRound = useCallback(
+    (roundNo: number) => {
+      if (!socket || !isConnected) return;
+
+      socket.emit("goToNextRound", roundNo);
+    },
+    [socket, isConnected],
+  );
+
   return (
     <div className="flex grow flex-col items-center justify-center overflow-auto p-4">
       {memeStarted && (
@@ -122,7 +147,7 @@ export default function AdminView() {
       {roundStarted && (
         <>
           <TopicContainer>
-            {!memeStarted && !canStartVotingRound && (
+            {!memeStarted && !canStartVotingRound && !showNextRoundPlayers && (
               <Button
                 disabled={isTopicLoading}
                 size="lg"
@@ -135,7 +160,7 @@ export default function AdminView() {
               </Button>
             )}
           </TopicContainer>
-          {!memeStarted && !canStartVotingRound && (
+          {!memeStarted && !canStartVotingRound && !showNextRoundPlayers && (
             <Button
               className="mt-32"
               disabled={topic === "" || isTopicLoading}
@@ -165,6 +190,59 @@ export default function AdminView() {
               >
                 Next Meme
               </Button>
+            </div>
+          )}
+          {showNextRoundPlayers && (
+            <div className="mt-16 flex w-full flex-col items-center gap-8 px-16">
+              <Button
+                className="mt-16"
+                size="lg"
+                onClick={() => goToNextRound(roundNo)}
+              >
+                Go To Next Round
+              </Button>
+              <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {nextRoundPlayers.map((player) => (
+                  <div className="flex flex-col items-center justify-center gap-1 rounded-lg border p-4">
+                    <p className="mb-4 text-lg font-semibold">
+                      {player.given_name} {player.family_name}
+                    </p>
+                    <PlayerMeme player={player} isAdmin isReadOnly />
+                  </div>
+                ))}
+                {nextRoundPlayers.map((player) => (
+                  <div className="flex flex-col items-center justify-center gap-1 rounded-lg border p-4">
+                    <p className="mb-4 text-lg font-semibold">
+                      {player.given_name} {player.family_name}
+                    </p>
+                    <PlayerMeme player={player} isAdmin isReadOnly />
+                  </div>
+                ))}
+                {nextRoundPlayers.map((player) => (
+                  <div className="flex flex-col items-center justify-center gap-1 rounded-lg border p-4">
+                    <p className="mb-4 text-lg font-semibold">
+                      {player.given_name} {player.family_name}
+                    </p>
+                    <PlayerMeme player={player} isAdmin isReadOnly />
+                  </div>
+                ))}
+                {nextRoundPlayers.map((player) => (
+                  <div className="flex flex-col items-center justify-center gap-1 rounded-lg border p-4">
+                    <p className="mb-4 text-lg font-semibold">
+                      {player.given_name} {player.family_name}
+                    </p>
+                    <PlayerMeme player={player} isAdmin isReadOnly />
+                  </div>
+                ))}
+                {nextRoundPlayers.map((player) => (
+                  <div className="flex flex-col items-center justify-center gap-1 rounded-lg border p-4">
+                    <p className="mb-4 text-lg font-semibold">
+                      {player.given_name} {player.family_name}
+                    </p>
+                    <PlayerMeme player={player} isAdmin isReadOnly />
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </>

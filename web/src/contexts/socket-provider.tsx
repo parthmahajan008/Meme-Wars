@@ -91,6 +91,11 @@ export default function SocketProvider({ children }: React.PropsWithChildren) {
       setPlayer1(player1Data);
       setPlayer2(player2Data);
     });
+    socketInstance.on("setNextRound", (roundNo) => {
+      setRoundStarted(false);
+      setRoundNo(roundNo);
+      setTopic("");
+    });
 
     setSocket(socketInstance);
 
