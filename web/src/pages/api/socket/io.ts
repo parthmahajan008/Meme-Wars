@@ -143,7 +143,8 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
           `round:${roundNo}`,
         );
         const players = users.filter((user) => user.role === Role.PLAYER);
-        roundPlayers = shuffle(players);
+        // roundPlayers = shuffle(players);
+        roundPlayers = players;
         currentIndex = 0;
         startVotingRound = true;
         io.in("admin").emit("canGoToNextMeme", true);
