@@ -27,14 +27,10 @@ export default function NotFound() {
       <Image src={randomMeme} alt="Not Found" className="-z-10" fill />
       <Link
         href="/"
-        className="fixed left-1/2 top-12 -translate-x-1/2 text-center"
+        className="fixed left-1/2 top-12 flex -translate-x-1/2 items-center gap-4 text-center"
       >
-        <Image
-          src="/logo/logo-light.svg"
-          alt="NSUT.AI Logo"
-          width={150}
-          height={120}
-        />
+        <Image src="/logo.svg" alt="NSUT.AI Logo" width={50} height={50} />
+        <span className="text-white">nsut.ai</span>
       </Link>
       <div className="flex h-full w-full items-center justify-center bg-black/20">
         <div className="text-center">
