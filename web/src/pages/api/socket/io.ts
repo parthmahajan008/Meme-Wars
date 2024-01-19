@@ -92,7 +92,7 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
         roundStarted = false;
         // roundTopic = "";
         startMemeing = false;
-        timer.stop();
+        timer?.stop();
         roundPlayers = [];
         currentIndex = 0;
         startVotingRound = false;
