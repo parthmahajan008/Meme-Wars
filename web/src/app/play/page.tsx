@@ -27,7 +27,6 @@ export default function PlayPage() {
   } = useSocket();
 
   const isVoting = player1 !== null || player2 !== null;
-  console.log({isVoting})
 
   useEffect(() => {
     if (!socket || !isConnected) return;
