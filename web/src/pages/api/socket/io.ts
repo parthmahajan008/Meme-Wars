@@ -87,6 +87,42 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponseServerIo) => {
         }
       });
 
+      socket.on("reset", async () => {
+        console.log("[RESET]");
+        roundStarted = false;
+        // roundTopic = "";
+        startMemeing = false;
+        timer.stop();
+        roundPlayers = [];
+        currentIndex = 0;
+        startVotingRound = false;
+        player1 = null;
+        player2 = null;
+        totalVotesCount = 0;
+        // io.emit("setNextRound", 1);
+        const sockets = await io.fetchSockets();
+        sockets.forEach((socket) => {
+          const rooms = socket.rooms;
+          rooms.forEach((room) => {
+            if (room.includes("round")) {
+              socket.leave(room);
+            }
+          });
+          socket.join("round:1");
+        });
+        const users = await getUsers(io);
+        io.emit("getUsers", users);
+        io.emit("setTopic", "");
+        io.emit("setStartRound", false);
+        // io.emit("setStartMemeing",false);
+        io.emit("setEndMemeing", true);
+        io.emit("showNextMeme", null, null);
+        io.emit("setNextRound", 1);
+        io.in("admin").emit("setShowNextRoundPlayers", false);
+        io.in("admin").emit("canStartVotingRound", false);
+        io.in("admin").emit("canGoToNextMeme", false);
+      });
+
       socket.on("newAdmin", async () => {
         console.log("[NEW ADMIN]");
         await socket.join("admin");

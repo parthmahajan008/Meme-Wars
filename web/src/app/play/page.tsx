@@ -40,9 +40,6 @@ export default function PlayPage() {
 
   return (
     <main className="h-screen">
-      <Button variant={"outline"} className="ml-auto">
-        <LogoutLink>Log out</LogoutLink>
-      </Button>
       {!roundStarted && <RoundLoading />}
       {roundStarted && (
         <div className="p-4">
